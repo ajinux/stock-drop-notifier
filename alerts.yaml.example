@@ -1,0 +1,64 @@
+# Stock Market Alert Configuration
+#
+# Copy this file to alerts.yaml and edit it, or build one up with:
+#   notifier add --symbol AAPL --threshold -5 --period 1m --name "AAPL Monthly Drop"
+#
+# threshold:          negative = drop, positive = gain
+# period:             7d / 2w / 1m / 1y  (months are 30 days, years are 365)
+# calculation_method: from_peak (default) measures from the period's peak;
+#                     period_to_period compares the start of the period to now
+#
+# Every symbol below works on the free Alpha Vantage tier. Index tickers such as
+# IXIC or SPX require a premium key — the ETFs that track them do not.
+
+alerts:
+  # Broad US market, via the S&P 500 ETF
+  - name: "S&P 500 Monthly Drop"
+    symbol: "SPY"
+    condition:
+      type: "percent_change"
+      threshold: -5.0
+      period: "1m"
+      calculation_method: "from_peak"
+    enabled: true
+
+  # Tech-heavy, via the Nasdaq 100 ETF
+  - name: "Nasdaq 100 Monthly Drop"
+    symbol: "QQQ"
+    condition:
+      type: "percent_change"
+      threshold: -5.0
+      period: "1m"
+      calculation_method: "from_peak"
+    enabled: true
+
+  # Small caps swing harder, so give this one a wider threshold
+  - name: "Russell 2000 Monthly Drop"
+    symbol: "IWM"
+    condition:
+      type: "percent_change"
+      threshold: -7.0
+      period: "1m"
+      calculation_method: "from_peak"
+    enabled: true
+
+  # A single stock, over a longer window
+  - name: "AAPL Quarterly Drop"
+    symbol: "AAPL"
+    condition:
+      type: "percent_change"
+      threshold: -10.0
+      period: "3m"
+      calculation_method: "from_peak"
+    enabled: true
+
+  # Net movement over a fixed window, ignoring the path taken.
+  # Disabled by default — enable it to compare the two methods side by side.
+  - name: "MSFT Monthly Gain"
+    symbol: "MSFT"
+    condition:
+      type: "percent_change"
+      threshold: 10.0
+      period: "1m"
+      calculation_method: "period_to_period"
+    enabled: false
