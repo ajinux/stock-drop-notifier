@@ -1,8 +1,8 @@
 # Environment files with secrets
 .env
 
-# Personal alert configuration (see alerts.yaml.example for a template)
-/alerts.yaml
+# Note: alerts.yaml IS tracked. The scheduled GitHub Actions workflow reads it
+# from the repo, so your watchlist has to be committed for hosted checks to run.
 
 # Binary output (leading slash: must not match the cmd/notifier/ package dir)
 /notifier

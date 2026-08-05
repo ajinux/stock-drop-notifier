@@ -1,0 +1,42 @@
+name: Check alerts
+
+on:
+  schedule:
+    # 22:00 UTC on weekdays — 6pm ET under EDT, 5pm ET under EST, so it always
+    # lands after the 4pm US close. GitHub cron is UTC and does not follow DST.
+    - cron: '0 22 * * 1-5'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# A delayed scheduled run must not overlap the next one and double-notify.
+concurrency:
+  group: check-alerts
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+
+    # The API key and bot credentials are environment secrets on "Prod".
+    # Without this, secrets.* resolve to empty and every run fails with
+    # "ALPHAVANTAGE_API_KEY is required".
+    environment: Prod
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      # Reads alerts.yaml from the repo root and takes credentials from the
+      # environment — no .env file involved.
+      - name: Evaluate alerts and notify
+        env:
+          ALPHAVANTAGE_API_KEY: ${{ secrets.ALPHAVANTAGE_API_KEY }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: go run ./cmd/notifier check --verbose
