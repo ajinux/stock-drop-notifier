@@ -1,6 +1,7 @@
 # Stock Market Notifier
 
-**Get a Telegram message when a stock drops. Free, forever, on your own machine.**
+**Get a Telegram message when a stock drops. Free, forever, and you don't even need a
+machine of your own to run it.**
 
 [![CI](https://github.com/ajinux/stock-market-notifier/actions/workflows/ci.yml/badge.svg)](https://github.com/ajinux/stock-market-notifier/actions/workflows/ci.yml)
 [![Go Version](https://img.shields.io/badge/go-1.25%2B-00ADD8?logo=go)](https://go.dev)
@@ -8,7 +9,8 @@
 
 A single Go binary that watches the stocks you care about and pings your Telegram
 when one of them moves past a threshold you set. No account, no subscription, no
-server, no data leaving your machine except the API calls it makes on your behalf.
+server to rent. Fork it, add three secrets, and GitHub Actions runs the checks for
+you on a schedule — or run it locally if you'd rather keep everything on your own box.
 
 ```
 ⚠️ *AAPL Weekly Drop* Alert
@@ -45,7 +47,7 @@ the volume a personal watchlist needs.
 - Measures the drop **from the period's peak** by default — the way you'd actually
   describe a dip — or start-to-end if you prefer
 - Sends a formatted Telegram message per triggered alert
-- Runs on demand, or on a schedule via cron or launchd
+- Runs on demand, or on a schedule via GitHub Actions, cron, or launchd
 
 **What it does not do (yet)**
 
@@ -102,7 +104,8 @@ day**, which covers 25 alerts checked once daily.
 2. Send any message to your new bot (a bot cannot start a conversation with you).
 3. Get your numeric chat ID by messaging [@userinfobot](https://t.me/userinfobot), or by
    opening `https://api.telegram.org/bot<YOUR_TOKEN>/getUpdates` and reading `chat.id`
-   from the JSON.
+   from the JSON. Copy the digits only — a stray space or newline is rejected with
+   `invalid TELEGRAM_CHAT_ID`.
 
 ### 4. Configure
 
@@ -127,13 +130,18 @@ Verify delivery end to end:
 
 ### 5. Add an alert and run it
 
-Start from the bundled example, which uses free-tier-friendly ETFs:
+The repo ships a working `alerts.yaml` using free-tier-friendly ETFs — edit it directly,
+or start over from `alerts.yaml.example`:
 
 ```bash
 cp alerts.yaml.example alerts.yaml
 ```
 
-Or build your watchlist up one alert at a time:
+Note that `alerts.yaml` is a tracked file, so your edits will show up in `git status`.
+That's deliberate: the [GitHub Actions workflow](#github-actions-no-machine-required)
+reads your watchlist from the repo.
+
+Or build it up one alert at a time:
 
 ```bash
 ./notifier add --symbol AAPL --threshold -5 --period 7d --name "AAPL Weekly Drop"
@@ -272,6 +280,42 @@ Months and years are approximations — `3m` is exactly 90 days, `1y` is exactly
 
 The tool is stateless and exits when done, so any scheduler works.
 
+### GitHub Actions (no machine required)
+
+This is the easiest way to run it, and it costs nothing — scheduled workflows are free on
+public repositories.
+
+1. **Fork this repo.**
+2. **Add your credentials as secrets.** Settings → Secrets and variables → Actions →
+   *New repository secret*, three times:
+
+   | Secret | Value |
+   |--------|-------|
+   | `ALPHAVANTAGE_API_KEY` | Your Alpha Vantage key |
+   | `TELEGRAM_BOT_TOKEN` | Your bot token from @BotFather |
+   | `TELEGRAM_CHAT_ID` | Your numeric chat ID, digits only |
+
+3. **Edit `alerts.yaml`** in your fork and commit it. Unlike most config, this file *is*
+   tracked — the workflow reads it out of the repo, so your watchlist has to be committed
+   for hosted checks to work. Keep the fork private if you'd rather not publish it.
+4. **Enable Actions** on the fork (the Actions tab asks once), and you're done.
+
+[`.github/workflows/scheduled-check.yml`](.github/workflows/scheduled-check.yml) runs at
+22:00 UTC on weekdays — 6pm ET during EDT, 5pm during EST, so it always lands after the
+4pm close. Change the `cron:` line to suit your market. You can also trigger it by hand
+from the Actions tab via **Run workflow**, which is the fastest way to confirm your
+secrets are right.
+
+> **Using an Actions environment instead?** If you put the secrets under an environment
+> rather than at repository level, the job needs to name it — `environment: <name>` in the
+> workflow. Without that, `secrets.*` come back empty and every run fails with
+> `ALPHAVANTAGE_API_KEY is required`. This repo's own workflow points at an environment
+> called `Prod`; delete that line if you use repository secrets.
+
+> **Scheduled workflows go dormant.** GitHub disables cron triggers on public repos after
+> 60 days without repository activity, and emails you when it does. Push a commit or
+> re-enable it from the Actions tab.
+
 ### cron (Linux, macOS)
 
 ```bash
@@ -344,10 +388,10 @@ message on every run. Widen the period, or disable the alert once you've seen it
 
 ## Roadmap
 
-- **Run it on GitHub Actions** — the original idea, and still the goal: a scheduled
-  workflow with your API key and bot token as repository secrets, so the whole thing runs
-  free with no machine of your own to keep on. Not implemented yet.
-- Deduplicate repeat notifications across runs
+- **Deduplicate repeat notifications across runs** — the next thing worth building. An
+  alert currently re-fires on every run for as long as it stays triggered, so a sustained
+  drawdown pings you daily. Firing only on the transition from OK to triggered needs a
+  small amount of state carried between runs.
 - Additional notification channels (email, webhooks, ntfy)
 - Absolute price thresholds alongside percentage change
 
