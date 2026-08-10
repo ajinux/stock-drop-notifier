@@ -40,6 +40,12 @@ Example usage:
   notifier list               # List all configured alerts
   notifier add --symbol AAPL --threshold -5 --period 7d --name "AAPL Drop"
   notifier remove "AAPL Drop"`,
+
+	// A runtime failure is not a usage mistake — don't dump the help text after
+	// one, which otherwise buries the actual error in CI logs. main already
+	// prints the error, so let it own that too rather than printing it twice.
+	SilenceUsage:  true,
+	SilenceErrors: true,
 }
 
 var verbose bool
@@ -249,6 +255,13 @@ func runCheck(cmd *cobra.Command, args []string) error {
 	// Show summary
 	fmt.Printf("\nSummary: %d evaluated, %d triggered, %d errors\n",
 		len(summary.Results), summary.TriggeredAlerts, summary.ErrorAlerts)
+
+	// Every alert failing means nothing was actually monitored. Exit non-zero so a
+	// scheduled run goes red instead of reporting a silent success — a green check
+	// on a run that checked nothing is worse than no run at all.
+	if summary.ErrorAlerts > 0 && summary.ErrorAlerts == len(summary.Results) {
+		return fmt.Errorf("all %d alert(s) failed to evaluate", summary.ErrorAlerts)
+	}
 
 	return nil
 }

@@ -3,9 +3,31 @@ package alphavantage
 import (
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 )
+
+// A minimal well-formed response, for tests that care about transport behaviour
+// rather than parsing.
+const validTimeSeriesJSON = `{
+	"Meta Data": {
+		"1. Information": "Daily Prices (open, high, low, close) and Volumes",
+		"2. Symbol": "IBM",
+		"3. Last Refreshed": "2024-01-15",
+		"4. Output Size": "Compact",
+		"5. Time Zone": "US/Eastern"
+	},
+	"Time Series (Daily)": {
+		"2024-01-15": {
+			"1. open": "150.00",
+			"2. high": "155.00",
+			"3. low": "149.00",
+			"4. close": "153.50",
+			"5. volume": "5000000"
+		}
+	}
+}`
 
 func TestParseTimeSeriesResponse(t *testing.T) {
 	jsonResponse := `{
@@ -242,5 +264,73 @@ func TestClient_CalculateExtremePriceChange(t *testing.T) {
 
 	if changeT < 16.6 || changeT > 16.7 {
 		t.Errorf("expected ~16.67%% change, got %f%%", changeT)
+	}
+}
+
+// A stalled or 5xx response should be retried rather than failing the symbol on
+// the first attempt — Alpha Vantage intermittently stops answering.
+func TestClient_RetriesTransientFailures(t *testing.T) {
+	attempts := 0
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		attempts++
+		if attempts < 3 {
+			w.WriteHeader(http.StatusServiceUnavailable)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(validTimeSeriesJSON))
+	}))
+	defer server.Close()
+
+	client := NewClient("test-key").WithBaseURL(server.URL).WithRetry(3, time.Millisecond)
+	resp, err := client.GetDailyTimeSeries("IBM")
+
+	if err != nil {
+		t.Fatalf("expected success on the third attempt, got: %v", err)
+	}
+	if attempts != 3 {
+		t.Errorf("expected 3 attempts, got %d", attempts)
+	}
+	if len(resp.TimeSeries) == 0 {
+		t.Error("expected parsed time series data")
+	}
+}
+
+// A 4xx is the caller's fault and will fail identically every time, so it must
+// not burn attempts.
+func TestClient_DoesNotRetryClientErrors(t *testing.T) {
+	attempts := 0
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		attempts++
+		w.WriteHeader(http.StatusBadRequest)
+	}))
+	defer server.Close()
+
+	client := NewClient("test-key").WithBaseURL(server.URL).WithRetry(3, time.Millisecond)
+	_, err := client.GetDailyTimeSeries("IBM")
+
+	if err == nil {
+		t.Fatal("expected an error for a 400 response")
+	}
+	if attempts != 1 {
+		t.Errorf("expected 1 attempt, got %d", attempts)
+	}
+}
+
+// Exhausting every attempt must report the underlying cause, not a bare count.
+func TestClient_ReportsLastErrorAfterExhaustingAttempts(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusServiceUnavailable)
+	}))
+	defer server.Close()
+
+	client := NewClient("test-key").WithBaseURL(server.URL).WithRetry(2, time.Millisecond)
+	_, err := client.GetDailyTimeSeries("IBM")
+
+	if err == nil {
+		t.Fatal("expected an error after exhausting attempts")
+	}
+	if !strings.Contains(err.Error(), "503") {
+		t.Errorf("expected the underlying 503 in the message, got: %v", err)
 	}
 }

@@ -1,8 +1,10 @@
 package alphavantage
 
 import (
+	"errors"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"net/url"
 	"strings"
@@ -16,6 +18,12 @@ const (
 	// DefaultTimeout is the default HTTP client timeout
 	DefaultTimeout = 30 * time.Second
 
+	// DefaultMaxAttempts is how many times a request is tried before giving up.
+	// Alpha Vantage sometimes stops answering entirely rather than returning an
+	// error — the connection is accepted and no headers ever arrive — so a stalled
+	// request is worth retrying before treating the symbol as failed.
+	DefaultMaxAttempts = 3
+
 	// CompactOutputMaxDays is the maximum period (in calendar days) that compact output can cover
 	// Compact returns ~100 trading days, which is roughly 140 calendar days (~5 months)
 	// We use 120 days as a safe threshold to ensure we have enough data
@@ -24,9 +32,11 @@ const (
 
 // Client is the Alpha Vantage API client
 type Client struct {
-	apiKey     string
-	httpClient *http.Client
-	baseURL    string
+	apiKey      string
+	httpClient  *http.Client
+	baseURL     string
+	maxAttempts int
+	retryDelay  time.Duration
 }
 
 // NewClient creates a new Alpha Vantage API client
@@ -36,8 +46,24 @@ func NewClient(apiKey string) *Client {
 		httpClient: &http.Client{
 			Timeout: DefaultTimeout,
 		},
-		baseURL: BaseURL,
+		baseURL:     BaseURL,
+		maxAttempts: DefaultMaxAttempts,
+		retryDelay:  time.Second,
 	}
+}
+
+// WithRetry sets how many times a failed request is tried and the base delay
+// between attempts, which doubles each time. Useful for testing.
+func (c *Client) WithRetry(maxAttempts int, delay time.Duration) *Client {
+	c.maxAttempts = maxAttempts
+	c.retryDelay = delay
+	return c
+}
+
+// WithTimeout sets the HTTP client timeout.
+func (c *Client) WithTimeout(timeout time.Duration) *Client {
+	c.httpClient.Timeout = timeout
+	return c
 }
 
 // WithHTTPClient sets a custom HTTP client (useful for testing)
@@ -86,22 +112,9 @@ func (c *Client) GetDailyTimeSeriesWithSize(symbol string, outputSize OutputSize
 
 	reqURL := fmt.Sprintf("%s?%s", c.baseURL, params.Encode())
 
-	// Make HTTP request
-	resp, err := c.httpClient.Get(reqURL)
+	body, err := c.fetchWithRetry(reqURL)
 	if err != nil {
-		return nil, fmt.Errorf("failed to fetch data: %w", err)
-	}
-	defer resp.Body.Close()
-
-	// Read response body
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read response: %w", err)
-	}
-
-	// Check HTTP status
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("API returned status %d: %s", resp.StatusCode, string(body))
+		return nil, err
 	}
 
 	// Parse response
@@ -121,6 +134,79 @@ func (c *Client) GetDailyTimeSeriesWithSize(symbol string, outputSize OutputSize
 	}
 
 	return tsResponse, nil
+}
+
+// fetchWithRetry performs the HTTP GET, retrying transient failures with an
+// exponentially growing delay. Non-transient failures (a 4xx, say) return at once.
+func (c *Client) fetchWithRetry(reqURL string) ([]byte, error) {
+	delay := c.retryDelay
+	var lastErr error
+
+	for attempt := 1; attempt <= c.maxAttempts; attempt++ {
+		if attempt > 1 {
+			time.Sleep(delay)
+			delay *= 2
+		}
+
+		body, err := c.fetch(reqURL)
+		if err == nil {
+			return body, nil
+		}
+		lastErr = err
+
+		if !isRetryable(err) {
+			return nil, err
+		}
+	}
+
+	return nil, fmt.Errorf("giving up after %d attempts: %w", c.maxAttempts, lastErr)
+}
+
+// fetch performs a single HTTP GET and returns the response body.
+func (c *Client) fetch(reqURL string) ([]byte, error) {
+	resp, err := c.httpClient.Get(reqURL)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch data: %w", err)
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read response: %w", err)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, &httpStatusError{Code: resp.StatusCode, Body: string(body)}
+	}
+
+	return body, nil
+}
+
+// httpStatusError is a non-2xx response from the API.
+type httpStatusError struct {
+	Code int
+	Body string
+}
+
+func (e *httpStatusError) Error() string {
+	return fmt.Sprintf("API returned status %d: %s", e.Code, e.Body)
+}
+
+// isRetryable reports whether an error is worth another attempt: network-level
+// failures and timeouts, plus the server-side statuses that indicate a temporary
+// problem rather than a bad request.
+func isRetryable(err error) bool {
+	var statusErr *httpStatusError
+	if errors.As(err, &statusErr) {
+		return statusErr.Code == http.StatusTooManyRequests || statusErr.Code >= 500
+	}
+
+	var netErr net.Error
+	if errors.As(err, &netErr) {
+		return true
+	}
+
+	return errors.Is(err, io.ErrUnexpectedEOF)
 }
 
 // GetDailyTimeSeriesForPeriod fetches daily time series with appropriate output size for the period

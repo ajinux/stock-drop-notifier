@@ -32,6 +32,18 @@ jobs:
           go-version-file: go.mod
           cache: true
 
+      # Alpha Vantage has been observed to stop answering requests from shared
+      # cloud IPs — the connection is accepted and no headers ever arrive. This
+      # separates "the API won't talk to this runner" from "the tool is broken",
+      # and never fails the job on its own.
+      - name: Probe Alpha Vantage reachability
+        continue-on-error: true
+        run: |
+          curl -sS -o /dev/null --max-time 20 \
+            -w 'dns=%{time_namelookup}s connect=%{time_connect}s tls=%{time_appconnect}s first_byte=%{time_starttransfer}s status=%{http_code}\n' \
+            'https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=IBM&apikey=demo' \
+            || echo "probe failed with curl exit $? (28 = timeout)"
+
       # Reads alerts.yaml from the repo root and takes credentials from the
       # environment — no .env file involved.
       - name: Evaluate alerts and notify
