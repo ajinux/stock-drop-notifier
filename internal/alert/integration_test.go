@@ -5,10 +5,10 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/ajinux/stock-market-notifier/internal/alert"
-	"github.com/ajinux/stock-market-notifier/internal/alphavantage"
-	"github.com/ajinux/stock-market-notifier/internal/config"
-	"github.com/ajinux/stock-market-notifier/internal/telegram"
+	"github.com/ajinux/stock-drop-notifier/internal/alert"
+	"github.com/ajinux/stock-drop-notifier/internal/alphavantage"
+	"github.com/ajinux/stock-drop-notifier/internal/config"
+	"github.com/ajinux/stock-drop-notifier/internal/telegram"
 )
 
 // TestIntegration_FullCheckWorkflow tests the complete workflow:

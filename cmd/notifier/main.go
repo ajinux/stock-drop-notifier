@@ -8,10 +8,10 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/ajinux/stock-market-notifier/internal/alert"
-	"github.com/ajinux/stock-market-notifier/internal/alphavantage"
-	"github.com/ajinux/stock-market-notifier/internal/config"
-	"github.com/ajinux/stock-market-notifier/internal/telegram"
+	"github.com/ajinux/stock-drop-notifier/internal/alert"
+	"github.com/ajinux/stock-drop-notifier/internal/alphavantage"
+	"github.com/ajinux/stock-drop-notifier/internal/config"
+	"github.com/ajinux/stock-drop-notifier/internal/telegram"
 )
 
 // Version information (set via ldflags during build)
@@ -92,7 +92,7 @@ var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Show version information",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Printf("stock-market-notifier %s\n", version)
+		fmt.Printf("stock-drop-notifier %s\n", version)
 		fmt.Printf("  Commit: %s\n", commit)
 		fmt.Printf("  Built:  %s\n", buildDate)
 	},

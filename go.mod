@@ -1,4 +1,4 @@
-module github.com/ajinux/stock-market-notifier
+module github.com/ajinux/stock-drop-notifier
 
 go 1.25.6
 

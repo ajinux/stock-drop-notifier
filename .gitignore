@@ -6,7 +6,7 @@
 
 # Binary output (leading slash: must not match the cmd/notifier/ package dir)
 /notifier
-/stock-market-notifier
+/stock-drop-notifier
 /bin/
 
 # Go build artifacts
