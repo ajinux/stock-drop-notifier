@@ -172,6 +172,11 @@ Summary: 1 evaluated, 1 triggered, 0 errors
 | `notifier test-telegram` | Send a mock alert to verify your Telegram setup |
 | `notifier version` | Print version, commit, and build date |
 
+Don't know what to add yet? If you use an AI coding assistant, point it at
+[`skills/stock-research.md`](skills/stock-research.md) — it researches candidates on the
+web, proposes a threshold/period for each, and adds the ones you approve using `notifier
+add` below.
+
 ### `check`
 
 | Flag | Short | Description |

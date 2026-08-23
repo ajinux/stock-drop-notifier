@@ -2,6 +2,8 @@
 
 These instructions are specifically tailored for future AI agents working in this repository to prevent common mistakes, understand system assumptions, and verify work correctly.
 
+If you're being asked to help find stocks worth watching (not just manage existing alerts), follow `skills/stock-research.md` instead of improvising — it covers scoping, sourcing, and the approval/commit/push sequence this repo expects.
+
 ---
 
 ## ⚡ Core Domain Constraints & Assumptions
