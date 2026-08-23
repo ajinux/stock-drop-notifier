@@ -40,6 +40,22 @@ alerts:
         period: 1m
         calculation_method: from_peak
       enabled: true
+    - name: NVDA Monthly Drop (From Peak)
+      symbol: NVDA
+      condition:
+        type: percent_change
+        threshold: -8
+        period: 1m
+        calculation_method: from_peak
+      enabled: true
+    - name: META Monthly Drop (From Peak)
+      symbol: META
+      condition:
+        type: percent_change
+        threshold: -8
+        period: 1m
+        calculation_method: from_peak
+      enabled: true
 
 #    - name: MSFT Quarterly Drop (From Peak)
 #      symbol: MSFT
