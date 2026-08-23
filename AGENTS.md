@@ -2,7 +2,7 @@
 
 These instructions are specifically tailored for future AI agents working in this repository to prevent common mistakes, understand system assumptions, and verify work correctly.
 
-If you're being asked to help find stocks worth watching (not just manage existing alerts), follow `skills/stock-research.md` instead of improvising — it covers scoping, sourcing, and the approval/commit/push sequence this repo expects.
+If you're being asked to help find stocks worth watching (not just manage existing alerts), follow `skills/stock-research.md` instead of improvising — it covers scoping, sourcing, and the approval/commit/push sequence this repo expects. In Claude Code, this is also registered as an invokable skill (`.claude/skills/stock-research/SKILL.md`, runs via `/stock-research`) — that file just points back here, so `skills/stock-research.md` remains the one canonical version to edit.
 
 ---
 

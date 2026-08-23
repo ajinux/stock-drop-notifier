@@ -49,7 +49,8 @@ the volume a personal watchlist needs.
 - Sends a formatted Telegram message per triggered alert
 - Runs on demand, or on a schedule via GitHub Actions, cron, or launchd
 - Ships an AI-assistant skill ([`skills/stock-research.md`](skills/stock-research.md)) that
-  researches stocks worth watching, if you don't already know what to add
+  researches stocks worth watching, if you don't already know what to add — Claude Code
+  users can invoke it directly with `/stock-research`
 
 **What it does not do (yet)**
 
