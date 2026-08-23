@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/ajinux/stock-market-notifier/internal/alphavantage"
-	"github.com/ajinux/stock-market-notifier/internal/config"
+	"github.com/ajinux/stock-drop-notifier/internal/alphavantage"
+	"github.com/ajinux/stock-drop-notifier/internal/config"
 )
 
 // DefaultRateLimitDelay is the delay between API calls to avoid rate limiting

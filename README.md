@@ -1,9 +1,9 @@
-# Stock Market Notifier
+# Stock Drop Notifier
 
 **Get a Telegram message when a stock drops. Free, forever, and you don't even need a
 machine of your own to run it.**
 
-[![CI](https://github.com/ajinux/stock-market-notifier/actions/workflows/ci.yml/badge.svg)](https://github.com/ajinux/stock-market-notifier/actions/workflows/ci.yml)
+[![CI](https://github.com/ajinux/stock-drop-notifier/actions/workflows/ci.yml/badge.svg)](https://github.com/ajinux/stock-drop-notifier/actions/workflows/ci.yml)
 [![Go Version](https://img.shields.io/badge/go-1.25%2B-00ADD8?logo=go)](https://go.dev)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
@@ -76,14 +76,14 @@ your API quota allows.
 ### 1. Install
 
 ```bash
-go install github.com/ajinux/stock-market-notifier/cmd/notifier@latest
+go install github.com/ajinux/stock-drop-notifier/cmd/notifier@latest
 ```
 
 Or build from source, which is what you want if you plan to change anything:
 
 ```bash
-git clone https://github.com/ajinux/stock-market-notifier.git
-cd stock-market-notifier
+git clone https://github.com/ajinux/stock-drop-notifier.git
+cd stock-drop-notifier
 make build          # produces ./notifier
 ```
 
@@ -92,8 +92,8 @@ pick a directory to keep `.env` and `alerts.yaml` in, and run it from there.
 
 ### 2. Get an Alpha Vantage API key
 
-Sign up at [alphavantage.co](https://www.alphavantage.co/support/#api-key) — it takes
-about thirty seconds and no payment details. The free tier gives you **25 requests per
+Go to [alphavantage.co](https://www.alphavantage.co/support/#api-key) and grab an API key — it takes
+about thirty seconds and no payment details. Not even email verification is required. The free tier gives you **25 requests per
 day**, which covers 25 alerts checked once daily.
 
 ### 3. Create a Telegram bot
@@ -324,7 +324,7 @@ crontab -e
 
 ```cron
 # Weekdays at 6 PM, after US market close
-0 18 * * 1-5 cd /path/to/stock-market-notifier && ./notifier check >> /tmp/notifier.log 2>&1
+0 18 * * 1-5 cd /path/to/stock-drop-notifier && ./notifier check >> /tmp/notifier.log 2>&1
 ```
 
 The `cd` matters — `.env` and `alerts.yaml` are resolved relative to the working

@@ -5,7 +5,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/ajinux/stock-market-notifier/internal/alphavantage"
+	"github.com/ajinux/stock-drop-notifier/internal/alphavantage"
 )
 
 func mockServer(response string) *httptest.Server {

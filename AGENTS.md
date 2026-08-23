@@ -1,4 +1,4 @@
-# Agent Instructions: Stock Market Notifier
+# Agent Instructions: Stock Drop Notifier
 
 These instructions are specifically tailored for future AI agents working in this repository to prevent common mistakes, understand system assumptions, and verify work correctly.
 

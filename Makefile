@@ -1,4 +1,4 @@
-# Stock Market Notifier Makefile
+# Stock Drop Notifier Makefile
 
 # Build variables
 BINARY_NAME=notifier
@@ -66,7 +66,7 @@ tidy:
 
 ## install: Build and install for daily launchd automation (~/bin + ~/.stock-notifier)
 install: build
-	@echo "📦 Installing Stock Market Notifier for daily automation..."
+	@echo "📦 Installing Stock Drop Notifier for daily automation..."
 	@mkdir -p $(INSTALL_DIR)
 	@mkdir -p $(CONFIG_DIR)
 	@cp $(BINARY_NAME) $(INSTALL_DIR)/$(BINARY_NAME)
@@ -110,7 +110,7 @@ install-gopath:
 
 ## uninstall: Remove installed binary and stop launchd agent (keeps configs)
 uninstall:
-	@echo "🗑️  Uninstalling Stock Market Notifier..."
+	@echo "🗑️  Uninstalling Stock Drop Notifier..."
 	@if [ -f "$(LAUNCHD_PLIST)" ]; then \
 		launchctl unload $(LAUNCHD_PLIST) 2>/dev/null || true; \
 		echo "🛑 Unloaded launchd agent"; \
