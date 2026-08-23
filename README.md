@@ -48,6 +48,8 @@ the volume a personal watchlist needs.
   describe a dip — or start-to-end if you prefer
 - Sends a formatted Telegram message per triggered alert
 - Runs on demand, or on a schedule via GitHub Actions, cron, or launchd
+- Ships an AI-assistant skill ([`skills/stock-research.md`](skills/stock-research.md)) that
+  researches stocks worth watching, if you don't already know what to add
 
 **What it does not do (yet)**
 
@@ -171,11 +173,6 @@ Summary: 1 evaluated, 1 triggered, 0 errors
 | `notifier remove <name>` | Remove an alert by name |
 | `notifier test-telegram` | Send a mock alert to verify your Telegram setup |
 | `notifier version` | Print version, commit, and build date |
-
-Don't know what to add yet? If you use an AI coding assistant, point it at
-[`skills/stock-research.md`](skills/stock-research.md) — it researches candidates on the
-web, proposes a threshold/period for each, and adds the ones you approve using `notifier
-add` below.
 
 ### `check`
 
