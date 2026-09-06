@@ -88,3 +88,27 @@ alerts:
         period: 1m
         calculation_method: from_peak
       enabled: true
+    - name: LLY Monthly Drop (From Peak)
+      symbol: LLY
+      condition:
+        type: percent_change
+        threshold: -10
+        period: 1m
+        calculation_method: from_peak
+      enabled: true
+    - name: JPM Monthly Drop (From Peak)
+      symbol: JPM
+      condition:
+        type: percent_change
+        threshold: -7
+        period: 1m
+        calculation_method: from_peak
+      enabled: true
+    - name: VST Monthly Drop (From Peak)
+      symbol: VST
+      condition:
+        type: percent_change
+        threshold: -10
+        period: 1m
+        calculation_method: from_peak
+      enabled: true
