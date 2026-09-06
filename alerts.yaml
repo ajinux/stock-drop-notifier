@@ -56,12 +56,35 @@ alerts:
         period: 1m
         calculation_method: from_peak
       enabled: true
-
-#    - name: MSFT Quarterly Drop (From Peak)
-#      symbol: MSFT
-#      condition:
-#        type: percent_change
-#        threshold: -10
-#        period: 3m
-#        calculation_method: from_peak
-#      enabled: true
+    - name: MSFT Quarterly Drop (From Peak)
+      symbol: MSFT
+      condition:
+        type: percent_change
+        threshold: -10
+        period: 3m
+        calculation_method: from_peak
+      enabled: true
+    - name: GOOGL Monthly Drop (From Peak)
+      symbol: GOOGL
+      condition:
+        type: percent_change
+        threshold: -8
+        period: 1m
+        calculation_method: from_peak
+      enabled: true
+    - name: AVGO Monthly Drop (From Peak)
+      symbol: AVGO
+      condition:
+        type: percent_change
+        threshold: -10
+        period: 1m
+        calculation_method: from_peak
+      enabled: true
+    - name: TSLA Monthly Drop (From Peak)
+      symbol: TSLA
+      condition:
+        type: percent_change
+        threshold: -10
+        period: 1m
+        calculation_method: from_peak
+      enabled: true
