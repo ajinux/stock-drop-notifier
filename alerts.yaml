@@ -112,3 +112,11 @@ alerts:
         period: 1m
         calculation_method: from_peak
       enabled: true
+    - name: SNDK Monthly Drop (From Peak)
+      symbol: SNDK
+      condition:
+        type: percent_change
+        threshold: -10
+        period: 1m
+        calculation_method: from_peak
+      enabled: true
