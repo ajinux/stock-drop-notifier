@@ -120,3 +120,11 @@ alerts:
         period: 1m
         calculation_method: from_peak
       enabled: true
+    - name: Nifty 50 Monthly Drop (From Peak)
+      symbol: NIFTYBEES.BSE
+      condition:
+        type: percent_change
+        threshold: -5
+        period: 1m
+        calculation_method: from_peak
+      enabled: true
