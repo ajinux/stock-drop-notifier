@@ -201,15 +201,16 @@ func runCheck(cmd *cobra.Command, args []string) error {
 					triggerStatus = "TRIGGERED"
 				}
 
+				cur := alert.CurrencySymbol(result.Alert.Symbol)
 				var priceInfo string
 				if result.Alert.CalculationMethod == "from_peak" || result.Alert.CalculationMethod == "" {
 					extremeName := "Peak"
 					if result.Alert.Threshold >= 0 {
 						extremeName = "Trough"
 					}
-					priceInfo = fmt.Sprintf("Current: $%.2f, %s: $%.2f", result.CurrentPrice, extremeName, result.ExtremePrice)
+					priceInfo = fmt.Sprintf("Current: %s%.2f, %s: %s%.2f", cur, result.CurrentPrice, extremeName, cur, result.ExtremePrice)
 				} else {
-					priceInfo = fmt.Sprintf("Current: $%.2f, Past: $%.2f", result.CurrentPrice, result.PastPrice)
+					priceInfo = fmt.Sprintf("Current: %s%.2f, Past: %s%.2f", cur, result.CurrentPrice, cur, result.PastPrice)
 				}
 
 				fmt.Printf("%s  %s (%s): %s (%s, Change: %.2f%%, Threshold: %.2f%%)\n",

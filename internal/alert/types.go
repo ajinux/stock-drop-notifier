@@ -44,6 +44,7 @@ func (r *AlertResult) Message() string {
 			r.Alert.Name, r.Alert.Symbol, r.PercentChange, r.Alert.Threshold)
 	}
 
+	cur := CurrencySymbol(r.Alert.Symbol)
 	direction := "up"
 	if r.PercentChange < 0 {
 		direction = "down"
@@ -54,8 +55,8 @@ func (r *AlertResult) Message() string {
 		if r.Alert.Threshold >= 0 {
 			extremeName = "trough"
 		}
-		return fmt.Sprintf("%s (%s) is %s %.2f%% from %s ($%.2f) over the last %d days (threshold: %.2f%%)",
-			r.Alert.Name, r.Alert.Symbol, direction, absFloat(r.PercentChange), extremeName, r.ExtremePrice, r.Alert.Period, r.Alert.Threshold)
+		return fmt.Sprintf("%s (%s) is %s %.2f%% from %s (%s%.2f) over the last %d days (threshold: %.2f%%)",
+			r.Alert.Name, r.Alert.Symbol, direction, absFloat(r.PercentChange), extremeName, cur, r.ExtremePrice, r.Alert.Period, r.Alert.Threshold)
 	}
 
 	return fmt.Sprintf("%s (%s) is %s %.2f%% over the last %d days (threshold: %.2f%%)",
@@ -68,6 +69,7 @@ func (r *AlertResult) TelegramMessage() string {
 		return fmt.Sprintf("❌ *Error* evaluating alert *%s*:\n%v", r.Alert.Name, r.Error)
 	}
 
+	cur := CurrencySymbol(r.Alert.Symbol)
 	direction := "📈 up"
 	emoji := "🚀"
 	if r.PercentChange < 0 {
@@ -81,31 +83,42 @@ func (r *AlertResult) TelegramMessage() string {
 			extremeName = "Trough"
 		}
 		return fmt.Sprintf("%s *%s* Alert\n\n"+
-			"*%s* (%s) is %s *%.2f%%* from %s ($%.2f) over the last %d days\n\n"+
-			"• Current: $%.2f\n"+
-			"• %s Price: $%.2f\n"+
+			"*%s* (%s) is %s *%.2f%%* from %s (%s%.2f) over the last %d days\n\n"+
+			"• Current: %s%.2f\n"+
+			"• %s Price: %s%.2f\n"+
 			"• Threshold: %.2f%%\n"+
 			"• Time: %s",
 			emoji, r.Alert.Name,
-			r.Alert.Name, r.Alert.Symbol, direction, absFloat(r.PercentChange), strings.ToLower(extremeName), r.ExtremePrice, r.Alert.Period,
-			r.CurrentPrice,
-			extremeName, r.ExtremePrice,
+			r.Alert.Name, r.Alert.Symbol, direction, absFloat(r.PercentChange), strings.ToLower(extremeName), cur, r.ExtremePrice, r.Alert.Period,
+			cur, r.CurrentPrice,
+			extremeName, cur, r.ExtremePrice,
 			r.Alert.Threshold,
 			r.EvaluatedAt.Format("2006-01-02 15:04:05 MST"))
 	}
 
 	return fmt.Sprintf("%s *%s* Alert\n\n"+
 		"*%s* (%s) is %s *%.2f%%* over the last %d days\n\n"+
-		"• Current: $%.2f\n"+
-		"• %d days ago: $%.2f\n"+
+		"• Current: %s%.2f\n"+
+		"• %d days ago: %s%.2f\n"+
 		"• Threshold: %.2f%%\n"+
 		"• Time: %s",
 		emoji, r.Alert.Name,
 		r.Alert.Name, r.Alert.Symbol, direction, absFloat(r.PercentChange), r.Alert.Period,
-		r.CurrentPrice,
-		r.Alert.Period, r.PastPrice,
+		cur, r.CurrentPrice,
+		r.Alert.Period, cur, r.PastPrice,
 		r.Alert.Threshold,
 		r.EvaluatedAt.Format("2006-01-02 15:04:05 MST"))
+}
+
+// CurrencySymbol returns the currency prefix for a ticker's prices. Alpha Vantage
+// quotes Indian listings (".BSE" / ".NSE" suffix) in rupees; everything else this
+// tool tracks is quoted in US dollars.
+func CurrencySymbol(symbol string) string {
+	upper := strings.ToUpper(symbol)
+	if strings.HasSuffix(upper, ".BSE") || strings.HasSuffix(upper, ".NSE") {
+		return "₹"
+	}
+	return "$"
 }
 
 func absFloat(f float64) float64 {
