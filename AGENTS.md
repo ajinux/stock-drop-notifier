@@ -10,7 +10,9 @@ If you're being asked to help find stocks worth watching (not just manage existi
 
 ### 1. Alpha Vantage API Rate Limiting
 * **Limits:** Free tier allows **25 requests/day** and **5 requests/minute**.
-* **Enforced Delay:** The engine enforces a **1.2-second sleep delay (`1200ms`)** between consecutive ticker evaluations.
+* **Enforced Delay:** The engine enforces a **1.2-second sleep delay (`1200ms`)** between consecutive API fetches.
+* **Shared fetches:** Within one `check` run, alerts on the same symbol (and same compact/full size) reuse a single fetch, so tiered alerts (e.g. SPY at -10/-12/-15/-20%) cost one request. Quota usage = number of distinct symbols, not number of alerts.
+* **Tier collapsing:** When several tiers of the same symbol/period/method/direction trigger, only the deepest one is sent to Telegram (`EvaluationSummary.GetNotifiableResults`).
 * **Testing:** In tests, ALWAYS disable this delay to prevent extremely slow suites by calling `.WithRateLimitDelay(0)` on the Engine.
 
 ### 2. Time Series Data Boundaries (Compact vs. Full)
