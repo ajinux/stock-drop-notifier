@@ -1,130 +1,138 @@
 # Stock Market Alert Configuration
 alerts:
-    - name: Amazon monthly Drop (From Peak)
+    - name: Amazon Quarterly Drop (From Peak)
       symbol: AMZN
+      condition:
+        type: percent_change
+        threshold: -15
+        period: 3m
+        calculation_method: from_peak
+      enabled: true
+    - name: AAPL Quarterly Drop (From Peak)
+      symbol: AAPL
+      condition:
+        type: percent_change
+        threshold: -12
+        period: 3m
+        calculation_method: from_peak
+      enabled: true
+    - name: Russell 2000 Quarterly Drop (From Peak)
+      symbol: IWM
+      condition:
+        type: percent_change
+        threshold: -12
+        period: 3m
+        calculation_method: from_peak
+      enabled: true
+    - name: Nasdaq 100 Quarterly Drop (From Peak)
+      symbol: QQQ
       condition:
         type: percent_change
         threshold: -10
         period: 3m
         calculation_method: from_peak
       enabled: true
-    - name: AAPL monthly Drop (From Peak)
-      symbol: AAPL
-      condition:
-        type: percent_change
-        threshold: -5
-        period: 1m
-        calculation_method: from_peak
-      enabled: true
-    - name: Russell 2000 Monthly drop (From Peak)
-      symbol: IWM
-      condition:
-        type: percent_change
-        threshold: -7
-        period: 1m
-        calculation_method: from_peak
-      enabled: true
-    - name: Nasdaq 100 Monthly drop (From Peak)
-      symbol: QQQ
-      condition:
-        type: percent_change
-        threshold: -5
-        period: 1m
-        calculation_method: from_peak
-      enabled: true
-    - name: S&P 500 Monthly drop (From Peak)
+    - name: S&P 500 Quarterly Drop (From Peak)
       symbol: SPY
       condition:
         type: percent_change
-        threshold: -5
-        period: 1m
+        threshold: -7
+        period: 3m
         calculation_method: from_peak
       enabled: true
-    - name: NVDA Monthly Drop (From Peak)
+    - name: S&P 500 Major Drop - 10% (From Peak)
+      symbol: SPY
+      condition:
+        type: percent_change
+        threshold: -10
+        period: 3m
+        calculation_method: from_peak
+      enabled: true
+    - name: NVDA Quarterly Drop (From Peak)
       symbol: NVDA
       condition:
         type: percent_change
-        threshold: -8
-        period: 1m
+        threshold: -15
+        period: 3m
         calculation_method: from_peak
       enabled: true
-    - name: META Monthly Drop (From Peak)
+    - name: META Quarterly Drop (From Peak)
       symbol: META
       condition:
         type: percent_change
-        threshold: -8
-        period: 1m
+        threshold: -15
+        period: 3m
         calculation_method: from_peak
       enabled: true
     - name: MSFT Quarterly Drop (From Peak)
       symbol: MSFT
       condition:
         type: percent_change
-        threshold: -10
+        threshold: -15
         period: 3m
         calculation_method: from_peak
       enabled: true
-    - name: GOOGL Monthly Drop (From Peak)
+    - name: GOOGL Quarterly Drop (From Peak)
       symbol: GOOGL
       condition:
         type: percent_change
-        threshold: -8
-        period: 1m
+        threshold: -15
+        period: 3m
         calculation_method: from_peak
       enabled: true
-    - name: AVGO Monthly Drop (From Peak)
+    - name: AVGO Quarterly Drop (From Peak)
       symbol: AVGO
       condition:
         type: percent_change
-        threshold: -10
-        period: 1m
+        threshold: -20
+        period: 3m
         calculation_method: from_peak
       enabled: true
-    - name: TSLA Monthly Drop (From Peak)
+    - name: TSLA Quarterly Drop (From Peak)
       symbol: TSLA
       condition:
         type: percent_change
-        threshold: -10
-        period: 1m
+        threshold: -25
+        period: 3m
         calculation_method: from_peak
       enabled: true
-    - name: LLY Monthly Drop (From Peak)
+    - name: LLY Quarterly Drop (From Peak)
       symbol: LLY
       condition:
         type: percent_change
-        threshold: -10
-        period: 1m
+        threshold: -15
+        period: 3m
         calculation_method: from_peak
       enabled: true
-    - name: JPM Monthly Drop (From Peak)
+    - name: JPM Quarterly Drop (From Peak)
       symbol: JPM
       condition:
         type: percent_change
-        threshold: -7
-        period: 1m
+        threshold: -12
+        period: 3m
         calculation_method: from_peak
       enabled: true
-    - name: VST Monthly Drop (From Peak)
+    - name: VST Quarterly Drop (From Peak)
       symbol: VST
       condition:
         type: percent_change
-        threshold: -10
-        period: 1m
+        threshold: -20
+        period: 3m
         calculation_method: from_peak
       enabled: true
-    - name: SNDK Monthly Drop (From Peak)
+    - name: SNDK Quarterly Drop (From Peak)
       symbol: SNDK
       condition:
         type: percent_change
-        threshold: -10
-        period: 1m
+        threshold: -25
+        period: 3m
         calculation_method: from_peak
       enabled: true
-    - name: Nifty 50 Monthly Drop (From Peak)
+    - name: Nifty 50 Quarterly Drop (From Peak)
       symbol: NIFTYBEES.BSE
       condition:
         type: percent_change
-        threshold: -5
-        period: 1m
+        threshold: -8
+        period: 3m
         calculation_method: from_peak
       enabled: true
