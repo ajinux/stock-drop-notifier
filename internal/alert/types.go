@@ -134,6 +134,7 @@ type EvaluationSummary struct {
 	TriggeredAlerts int
 	SkippedAlerts   int
 	ErrorAlerts     int
+	APIRequests     int // Network fetches made; lower than alerts evaluated when symbols repeat
 	Results         []AlertResult
 }
 
@@ -146,6 +147,42 @@ func (s *EvaluationSummary) GetTriggeredResults() []AlertResult {
 		}
 	}
 	return triggered
+}
+
+// GetNotifiableResults returns the triggered results that should be sent as
+// notifications. When several triggered alerts are tiers of the same check
+// (same symbol, period, calculation method and direction, e.g. SPY at -10%,
+// -12% and -15%), only the deepest triggered tier is kept — its message already
+// carries the actual percentage move, so the shallower tiers add nothing.
+// Order follows the first appearance of each group.
+func (s *EvaluationSummary) GetNotifiableResults() []AlertResult {
+	type groupKey struct {
+		symbol string
+		period int
+		method string
+		drop   bool
+	}
+	var order []groupKey
+	best := make(map[groupKey]AlertResult)
+	for _, r := range s.GetTriggeredResults() {
+		method := r.Alert.CalculationMethod
+		if method == "" {
+			method = "from_peak"
+		}
+		k := groupKey{r.Alert.Symbol, r.Alert.Period, method, r.Alert.Threshold < 0}
+		cur, seen := best[k]
+		if !seen {
+			order = append(order, k)
+			best[k] = r
+		} else if absFloat(r.Alert.Threshold) > absFloat(cur.Alert.Threshold) {
+			best[k] = r
+		}
+	}
+	out := make([]AlertResult, 0, len(order))
+	for _, k := range order {
+		out = append(out, best[k])
+	}
+	return out
 }
 
 // GetErrorResults returns only the results that had errors

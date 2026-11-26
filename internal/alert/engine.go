@@ -15,6 +15,43 @@ const DefaultRateLimitDelay = 1200 * time.Millisecond // 1.2 seconds
 type Engine struct {
 	client         *alphavantage.Client
 	rateLimitDelay time.Duration
+
+	// Per-run fetch cache, active only inside EvaluateAll. Several alerts on the
+	// same symbol (e.g. SPY at -10/-12/-15/-20%) then cost one API request
+	// instead of one each, which matters with a 25 requests/day quota.
+	cache        map[string]fetchResult
+	fetchedCount int
+}
+
+type fetchResult struct {
+	response *alphavantage.TimeSeriesResponse
+	err      error
+}
+
+// fetch returns time series data for the symbol/period, reusing a response
+// already fetched in this run when the cache is active. The rate-limit delay is
+// applied only before real network requests, never for cache hits.
+func (e *Engine) fetch(symbol string, period int) (*alphavantage.TimeSeriesResponse, error) {
+	if e.cache == nil {
+		return e.client.GetDailyTimeSeriesForPeriod(symbol, period)
+	}
+	outputSize := alphavantage.OutputSizeCompact
+	if period > alphavantage.CompactOutputMaxDays {
+		outputSize = alphavantage.OutputSizeFull
+	}
+	key := symbol + "|" + string(outputSize)
+	if r, ok := e.cache[key]; ok {
+		return r.response, r.err
+	}
+	if e.fetchedCount > 0 && e.rateLimitDelay > 0 {
+		time.Sleep(e.rateLimitDelay)
+	}
+	e.fetchedCount++
+	resp, err := e.client.GetDailyTimeSeriesWithSize(symbol, outputSize)
+	// Errors are cached too: retrying the same symbol for each tier would just
+	// burn more of the daily quota on a request that already failed.
+	e.cache[key] = fetchResult{response: resp, err: err}
+	return resp, err
 }
 
 // NewEngine creates a new alert evaluation engine
@@ -40,7 +77,7 @@ func (e *Engine) EvaluateAlert(alert Alert) AlertResult {
 
 	// Fetch time series data with appropriate output size for the period
 	// For periods > 120 days, this will use "full" output to get enough historical data
-	response, err := e.client.GetDailyTimeSeriesForPeriod(alert.Symbol, alert.Period)
+	response, err := e.fetch(alert.Symbol, alert.Period)
 	if err != nil {
 		result.Error = fmt.Errorf("failed to fetch data for %s: %w", alert.Symbol, err)
 		return result
@@ -108,20 +145,16 @@ func (e *Engine) EvaluateAll(alerts []Alert) EvaluationSummary {
 		Results:     make([]AlertResult, 0, len(alerts)),
 	}
 
-	isFirstRequest := true
+	e.cache = make(map[string]fetchResult)
+	e.fetchedCount = 0
+	defer func() { e.cache = nil }()
+
 	for _, alert := range alerts {
 		// Skip disabled alerts
 		if !alert.Enabled {
 			summary.SkippedAlerts++
 			continue
 		}
-
-		// Add delay between API requests to avoid rate limiting (1 req/sec limit)
-		// Skip delay for the first request
-		if !isFirstRequest && e.rateLimitDelay > 0 {
-			time.Sleep(e.rateLimitDelay)
-		}
-		isFirstRequest = false
 
 		result := e.EvaluateAlert(alert)
 		summary.Results = append(summary.Results, result)
@@ -133,6 +166,7 @@ func (e *Engine) EvaluateAll(alerts []Alert) EvaluationSummary {
 		}
 	}
 
+	summary.APIRequests = e.fetchedCount
 	return summary
 }
 

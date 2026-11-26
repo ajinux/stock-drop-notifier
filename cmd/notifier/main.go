@@ -221,7 +221,8 @@ func runCheck(cmd *cobra.Command, args []string) error {
 	}
 
 	// Send notifications for triggered alerts
-	triggeredResults := summary.GetTriggeredResults()
+	// Tiered alerts on the same symbol collapse to the deepest triggered tier.
+	triggeredResults := summary.GetNotifiableResults()
 	if len(triggeredResults) > 0 {
 		// Validate Telegram configuration
 		if err := cfg.ValidateForNotify(); err != nil {
@@ -254,8 +255,8 @@ func runCheck(cmd *cobra.Command, args []string) error {
 	}
 
 	// Show summary
-	fmt.Printf("\nSummary: %d evaluated, %d triggered, %d errors\n",
-		len(summary.Results), summary.TriggeredAlerts, summary.ErrorAlerts)
+	fmt.Printf("\nSummary: %d evaluated, %d triggered, %d notified, %d errors, %d API request(s)\n",
+		len(summary.Results), summary.TriggeredAlerts, len(triggeredResults), summary.ErrorAlerts, summary.APIRequests)
 
 	// Every alert failing means nothing was actually monitored. Exit non-zero so a
 	// scheduled run goes red instead of reporting a silent success — a green check
